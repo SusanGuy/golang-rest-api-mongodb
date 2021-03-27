@@ -19,6 +19,7 @@ func ConnectDB() *mongo.Collection {
 	}
 	fmt.Println("Connected to MongoDB!")
 	collection := client.Database("go_rest_api").Collection("books")
+	
 	return collection
 }
 
