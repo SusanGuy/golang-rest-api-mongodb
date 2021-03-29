@@ -11,6 +11,7 @@ import (
 	"github.com/SusanGuy/golang-rest-api-mongodb/models"
 	"github.com/gorilla/mux"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 )
 
 var collection = helper.ConnectDB()
@@ -58,7 +59,20 @@ func updateBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func deleteBook(w http.ResponseWriter, r *http.Request) {
-
+	w.Header().Set("Content-Type", "application/json")
+	hash_id := mux.Vars(r)["id"]
+	id, err := primitive.ObjectIDFromHex(hash_id)
+	if err != nil {
+		helper.GetError(err, w)
+		return
+	}
+	filter := bson.M{"_id": id}
+	deleteRequest, err := collection.DeleteOne(context.TODO(), filter)
+	if err != nil {
+		helper.GetError(err, w)
+		return
+	}
+	json.NewEncoder(w).Encode(deleteRequest)
 }
 
 func main() {
