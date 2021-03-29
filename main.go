@@ -55,6 +55,35 @@ func createBook(w http.ResponseWriter, r *http.Request) {
 }
 
 func updateBook(w http.ResponseWriter, r *http.Request) {
+	w.Header().Set("Content-Type", "application/json")
+	hash_id := mux.Vars(r)["id"]
+	id, err := primitive.ObjectIDFromHex(hash_id)
+	if err != nil {
+		helper.GetError(err, w)
+		return
+	}
+	var book models.Book
+	filter := bson.M{"_id": id}
+	json.NewDecoder(r.Body).Decode(&book)
+	update := bson.D{
+		{"$set", bson.D{
+			{"isbn", book.Isbn},
+			{"title", book.Title},
+			{"author", bson.D{
+				{"first_name", book.Author.FirstName},
+				{"last_name", book.Author.LastName},
+			}},
+		}},
+	}
+	error := collection.FindOneAndUpdate(context.TODO(), filter, update).Decode(&book)
+	fmt.Println(book.Title, book.Isbn)
+	if error != nil {
+		helper.GetError(error, w)
+		return
+	}
+
+	book.ID = id
+	json.NewEncoder(w).Encode(book)
 
 }
 
